@@ -117,8 +117,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     == PackageManager.PERMISSION_GRANTED) {
                 buildGoogleApiClient();
                 mMap.setMyLocationEnabled(true);
-                mMap.setOnCameraIdleListener(onCameraIdleListener);
                 getAddress();
+                mMap.setOnCameraIdleListener(onCameraIdleListener);
+
             }
         } else {
             buildGoogleApiClient();
@@ -175,6 +176,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 == PackageManager.PERMISSION_GRANTED) {
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,
                     mLocationRequest, this);
+
         }
     }
 
@@ -271,27 +273,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         String state = addressList.get(0).getAdminArea();
                         String country = addressList.get(0).getCountryName();
                         String subLocality = addressList.get(0).getSubLocality();
+                        String locality = addressList.get(0).getAddressLine(0);
                         markerOptions.title("" + latLng + "," + subLocality + "," + state
                                 + "," + country);
-                        String locality = addressList.get(0).getAddressLine(0);
-                        if (!locality.isEmpty() && !country.isEmpty())
-                            tvCurrentLocation.setText("Location:\n" + address);
+                        if (locality!=null){
+                            if (!locality.isEmpty()){
+                                tvCurrentLocation.setText("Location:\n" + address);
+                            }
+                        }else {
+                            Toast.makeText(MapsActivity.this,"No location found",Toast.LENGTH_SHORT).show();
+                        }
+
                     }
 
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-//                markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
-//                mCurrLocationMarker = mMap.addMarker(markerOptions);
-//                animateMarker(mCurrLocationMarker,latLng,false);
-//                if (mMap.addMarker(markerOptions)!=null){
-//                    mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-//                    mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
-//                }else {
-//                    mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-//
-//                }
-
             }
 
         };
