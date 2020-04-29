@@ -19,8 +19,8 @@
 
     <ImageView
         android:id="@+id/imgLocationPinUp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
         android:layout_centerInParent="true"
         android:src="@drawable/location_pin_up"
         app:layout_constraintBottom_toTopOf="@id/tvCurrentLocation"
@@ -32,6 +32,7 @@
         android:id="@+id/tvCurrentLocation"
         android:layout_width="0dp"
         android:layout_height="300dp"
+        android:padding="10dp"
         android:lines="3"
         android:text="Location"
         android:textSize="15sp"

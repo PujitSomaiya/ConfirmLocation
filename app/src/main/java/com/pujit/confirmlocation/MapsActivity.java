@@ -150,13 +150,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             if (network_enabled) {
                 location = locManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
                 if(location!=null){
-
                     double longitude = location.getLongitude();
                     double latitude = location.getLatitude();
                     addresses=geocoder.getFromLocation(latitude,longitude,1);
                     String address=addresses.get(0).getAddressLine(0);
                     mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(latitude,longitude)));
-                    tvCurrentLocation.setText(address);
+                    mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
+                    tvCurrentLocation.setText("Location:\n" + address);
                 }
             }
 
@@ -278,6 +278,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 try {
                     List<Address> addressList = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
                     if (addressList != null && addressList.size() > 0) {
+                        String address=addressList.get(0).getAddressLine(0);
                         String state = addressList.get(0).getAdminArea();
                         String country = addressList.get(0).getCountryName();
                         String subLocality = addressList.get(0).getSubLocality();
@@ -285,7 +286,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                 + "," + country);
                         String locality = addressList.get(0).getAddressLine(0);
                         if (!locality.isEmpty() && !country.isEmpty())
-                            tvCurrentLocation.setText(locality + "  " + country);
+                            tvCurrentLocation.setText("Location:\n" + address);
                     }
 
                 } catch (IOException e) {
@@ -305,43 +306,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
 
         };
-    }
-
-    public void animateMarker(final Marker marker, final LatLng toPosition,
-                              final boolean hideMarker) {
-        final Handler handler = new Handler();
-        final long start = SystemClock.uptimeMillis();
-        Projection proj = mMap.getProjection();
-        Point startPoint = proj.toScreenLocation(marker.getPosition());
-        final LatLng startLatLng = proj.fromScreenLocation(startPoint);
-        final long duration = 500;
-
-        final Interpolator interpolator = new LinearInterpolator();
-
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                long elapsed = SystemClock.uptimeMillis() - start;
-                float t = interpolator.getInterpolation((float) elapsed
-                        / duration);
-                double lng = t * toPosition.longitude + (1 - t)
-                        * startLatLng.longitude;
-                double lat = t * toPosition.latitude + (1 - t)
-                        * startLatLng.latitude;
-                marker.setPosition(new LatLng(lat, lng));
-
-                if (t < 1.0) {
-                    // Post again 16ms later.
-                    handler.postDelayed(this, 16);
-                } else {
-                    if (hideMarker) {
-                        marker.setVisible(false);
-                    } else {
-                        marker.setVisible(true);
-                    }
-                }
-            }
-        });
     }
 
 }
