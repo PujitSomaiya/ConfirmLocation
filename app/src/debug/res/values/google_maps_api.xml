@@ -1,0 +1,24 @@
+<resources>
+    <!--
+    TODO: Before you run your application, you need a Google Maps API key.
+
+    To get one, follow this link, follow the directions and press "Create" at the end:
+
+    https://console.developers.google.com/flows/enableapi?apiid=maps_android_backend&keyType=CLIENT_SIDE_ANDROID&r=1D:90:F0:64:59:8B:D5:DC:ED:DD:4B:80:BA:3A:19:57:2A:39:2E:71%3Bcom.pujit.confirmlocation
+
+    You can also add your credentials to an existing key, using these values:
+
+    Package name:
+    com.pujit.confirmlocation
+
+    SHA-1 certificate fingerprint:
+    1D:90:F0:64:59:8B:D5:DC:ED:DD:4B:80:BA:3A:19:57:2A:39:2E:71
+
+    Alternatively, follow the directions here:
+    https://developers.google.com/maps/documentation/android/start#get-key
+
+    Once you have your key (it starts with "AIza"), replace the "google_maps_key"
+    string in this file.
+    -->
+    <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">AIzaSyAO1TxcQfIOFkWF_tww_8nl5B8INbacFRo</string>
+</resources>
