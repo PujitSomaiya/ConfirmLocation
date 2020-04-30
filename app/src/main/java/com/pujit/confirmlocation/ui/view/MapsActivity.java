@@ -115,15 +115,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             if (ContextCompat.checkSelfPermission(this,
                     Manifest.permission.ACCESS_FINE_LOCATION)
                     == PackageManager.PERMISSION_GRANTED) {
-                buildGoogleApiClient();
                 mMap.setMyLocationEnabled(true);
-                getAddress();
+                buildGoogleApiClient();
                 mMap.setOnCameraIdleListener(onCameraIdleListener);
-
             }
         } else {
-            buildGoogleApiClient();
             mMap.setMyLocationEnabled(true);
+            buildGoogleApiClient();
         }
     }
 
@@ -162,6 +160,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .addApi(LocationServices.API)
                 .build();
         mGoogleApiClient.connect();
+        getAddress();
     }
 
     @SuppressLint("RestrictedApi")
