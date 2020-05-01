@@ -5,10 +5,12 @@ import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
-
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
@@ -16,24 +18,36 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
+import android.util.Log;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.places.AutocompleteFilter;
+import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.libraries.places.api.Places;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.api.net.PlacesClient;
+import com.google.android.libraries.places.widget.Autocomplete;
+import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
+import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
+import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
 import com.pujit.confirmlocation.R;
-
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -49,6 +63,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Geocoder geocoder;
     private List<Address> addresses;
     private TextView tvCurrentLocation;
+    private Context context = this;
+    private PlacesClient placesClient;
+    private EditText edSearch;
 
 
     @Override
@@ -56,8 +73,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         tvCurrentLocation = findViewById(R.id.tvCurrentLocation);
-//        imgLocationPinUp = findViewById(R.id.imgLocationPinUp);
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+        placeAutoCompleteListener();
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             checkLocationPermission();
         }
@@ -70,6 +86,52 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
+    private void placeAutoCompleteListener() {
+        if (!Places.isInitialized()) {
+            Places.initialize(getApplicationContext(), getResources().getString(R.string.google_maps_key));
+        }
+        {
+            AutocompleteSupportFragment autocompleteFragment = (AutocompleteSupportFragment)
+                    getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
+            autocompleteFragment.setPlaceFields(Arrays.asList(Place.Field.ID,Place.Field.NAME));
+            autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+                @Override
+                public void onPlaceSelected(@NonNull Place place) {
+                    LatLng latLng = place.getLatLng();
+                    mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+                    mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
+                }
+
+                @Override
+                public void onError(Status status) {
+                    // TODO: Handle the error.
+
+                }
+            });
+        }
+    }
+
+//    private void searchField() {
+//        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+//            @Override
+//            public void onPlaceSelected(Place place) {
+//                mMap.clear();
+//                mMap.addMarker(new MarkerOptions().position(place.getLatLng()).title(place.getName().toString()));
+//                mMap.moveCamera(CameraUpdateFactory.newLatLng(place.getLatLng()));
+//                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(place.getLatLng(), 12.0f));
+//                Log.i("TAG", "Place: " + place.getName() + ", " + place.getId());
+//            }
+//
+//            @Override
+//            public void onError(Status status) {
+//                Log.e("error",String.valueOf(status));
+//            }
+//        });
+//    }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -94,23 +156,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
-     */
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+        mMap.setMapStyle(
+                MapStyleOptions.loadRawResourceStyle(
+                        this, R.raw.mapstyle));
         mMap.getUiSettings().setZoomControlsEnabled(true);
         mMap.getUiSettings().setZoomGesturesEnabled(true);
         mMap.getUiSettings().setCompassEnabled(true);
-        //Initialize Google Play Services
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (ContextCompat.checkSelfPermission(this,
                     Manifest.permission.ACCESS_FINE_LOCATION)
@@ -134,15 +188,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             boolean network_enabled = locManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
 
             Location location;
-
             if (network_enabled) {
                 location = locManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-                if(location!=null){
+                if (location != null) {
                     double longitude = location.getLongitude();
                     double latitude = location.getLatitude();
-                    addresses=geocoder.getFromLocation(latitude,longitude,1);
-                    String address=addresses.get(0).getAddressLine(0);
-                    mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(latitude,longitude)));
+                    addresses = geocoder.getFromLocation(latitude, longitude, 1);
+                    String address = addresses.get(0).getAddressLine(0);
+                    mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(latitude, longitude)));
                     mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
                     tvCurrentLocation.setText("Location:\n" + address);
                 }
@@ -154,13 +207,41 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     protected synchronized void buildGoogleApiClient() {
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(LocationServices.API)
-                .build();
-        mGoogleApiClient.connect();
-        getAddress();
+        LocationManager lm = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        boolean gps_enabled = false;
+        boolean network_enabled = false;
+
+        try {
+            gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        } catch (Exception ex) {
+            Log.d("gps exception", String.valueOf(ex));
+        }
+        if (!gps_enabled) {
+            new AlertDialog.Builder(context)
+                    .setMessage(R.string.gps_network_not_enabled)
+                    .setPositiveButton(R.string.open_location_settings, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+                            context.startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+                        }
+                    }).setNegativeButton(R.string.Cancel, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    finish();
+                }
+            }).show();
+
+
+        } else {
+            mGoogleApiClient = new GoogleApiClient.Builder(this)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(LocationServices.API)
+                    .build();
+            mGoogleApiClient.connect();
+            getAddress();
+        }
+
     }
 
     @SuppressLint("RestrictedApi")
@@ -254,8 +335,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             return true;
         }
     }
+
     private void configureCameraIdle() {
         onCameraIdleListener = new GoogleMap.OnCameraIdleListener() {
+            @SuppressLint("MissingPermission")
             @Override
             public void onCameraIdle() {
 //                if (mCurrLocationMarker != null) {
@@ -268,19 +351,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 try {
                     List<Address> addressList = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
                     if (addressList != null && addressList.size() > 0) {
-                        String address=addressList.get(0).getAddressLine(0);
+                        String address = addressList.get(0).getAddressLine(0);
                         String state = addressList.get(0).getAdminArea();
                         String country = addressList.get(0).getCountryName();
                         String subLocality = addressList.get(0).getSubLocality();
                         String locality = addressList.get(0).getAddressLine(0);
                         markerOptions.title("" + latLng + "," + subLocality + "," + state
                                 + "," + country);
-                        if (locality!=null){
-                            if (!locality.isEmpty()){
+                        if (address != null) {
+                            if (!address.isEmpty()) {
                                 tvCurrentLocation.setText("Location:\n" + address);
                             }
-                        }else {
-                            Toast.makeText(MapsActivity.this,"No location found",Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(MapsActivity.this, "No location found", Toast.LENGTH_SHORT).show();
                         }
 
                     }

@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">Confirm Location</string>
     <string name="title_activity_maps">Map</string>
+    <string name="gps_network_not_enabled">location is off</string>
+    <string name="open_location_settings">open setting</string>
+    <string name="Cancel">Cancel</string>
 </resources>
