@@ -108,10 +108,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void placeAutoCompleteListener() {
-        if (!Places.isInitialized()) {
-            Places.initialize(context, getResources().getString(R.string.google_maps_key));
-            PlacesClient placesClient = Places.createClient(this);
-        }
+        Places.initialize(context, getResources().getString(R.string.google_maps_key));
         AutocompleteSupportFragment autocompleteFragment = (AutocompleteSupportFragment) getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
         autocompleteFragment.setPlaceFields(Arrays.asList(Place.Field.NAME, Place.Field.ADDRESS, Place.Field.LAT_LNG));
         autocompleteFragment.setTypeFilter(TypeFilter.CITIES);
