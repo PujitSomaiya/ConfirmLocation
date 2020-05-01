@@ -2,11 +2,9 @@ package com.pujit.confirmlocation.ui.view;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
-
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
@@ -27,7 +25,6 @@ import android.widget.CheckBox;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Status;
@@ -43,6 +40,7 @@ import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.api.model.TypeFilter;
 import com.google.android.libraries.places.api.net.PlacesClient;
 import com.google.android.libraries.places.widget.Autocomplete;
 import com.google.android.libraries.places.widget.AutocompleteActivity;
@@ -69,7 +67,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private TextView tvCurrentLocation;
     private Context context = this;
     private CheckBox chkFav;
-    private CardView cvSearchBarl;
     private Intent searchIntent;
 
     @Override
@@ -108,9 +105,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void initListeners() {
         tvCurrentLocation = findViewById(R.id.tvCurrentLocation);
         chkFav = findViewById(R.id.chkFav);
-        cvSearchBarl = findViewById(R.id.cvSearchBarl);
-
-
     }
 
     private void placeAutoCompleteListener() {
@@ -120,6 +114,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         AutocompleteSupportFragment autocompleteFragment = (AutocompleteSupportFragment) getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
         autocompleteFragment.setPlaceFields(Arrays.asList(Place.Field.NAME, Place.Field.ADDRESS, Place.Field.LAT_LNG));
+        autocompleteFragment.setTypeFilter(TypeFilter.CITIES);
 //        List<Place.Field> fields = Arrays.asList(Place.Field.NAME, Place.Field.ADDRESS, Place.Field.LAT_LNG);
 //        searchIntent = new Autocomplete.IntentBuilder(
 //                AutocompleteActivityMode.OVERLAY, fields)
