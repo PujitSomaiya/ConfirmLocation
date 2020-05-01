@@ -21,7 +21,9 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
+import android.view.View;
 import android.widget.EditText;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -91,6 +93,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         .findFragmentById(R.id.map);
 
         mapFragment.getMapAsync(this);
+        View locationButton = mapFragment.getView().findViewById(2);
+        RelativeLayout.LayoutParams rlp = (RelativeLayout.LayoutParams)  locationButton.getLayoutParams();
+        rlp.addRule(RelativeLayout.ALIGN_PARENT_TOP, 0);
+        rlp.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
         configureCameraIdle();
 
     }
@@ -110,7 +116,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
                     mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
                     tvCurrentLocation.setText("Location:\n" + place.getName());
-
                     Log.i("TAG", "Place: " + place.getName() + ", " + place.getId());
                 } else {
                     Toast.makeText(context, "Latlag is null", Toast.LENGTH_LONG).show();
@@ -172,10 +177,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        mMap.setPadding(0,0,0,0);
         mMap.setMapStyle(
                 MapStyleOptions.loadRawResourceStyle(
                         this, R.raw.mapstyle));
-        mMap.getUiSettings().setZoomControlsEnabled(true);
+//        mMap.getUiSettings().setZoomControlsEnabled(true);
         mMap.getUiSettings().setZoomGesturesEnabled(true);
         mMap.getUiSettings().setCompassEnabled(true);
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -187,7 +193,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 mMap.setOnCameraIdleListener(onCameraIdleListener);
             }
         } else {
+
             mMap.setMyLocationEnabled(true);
+
             buildGoogleApiClient();
         }
     }
