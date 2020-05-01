@@ -22,6 +22,10 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <uses-library android:name="org.apache.http.legacy" android:required="false"/>
+        <provider
+            android:authorities="de.openminds.SampleRecentSuggestionsProvider"
+            android:name=".ui.view.SampleRecentSuggestionsProvider" >
+        </provider>
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
              (See the file "res/values/google_maps_api.xml").

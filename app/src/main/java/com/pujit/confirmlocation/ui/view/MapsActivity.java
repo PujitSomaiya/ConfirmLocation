@@ -2,6 +2,7 @@ package com.pujit.confirmlocation.ui.view;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
@@ -22,7 +23,7 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
-import android.widget.EditText;
+import android.widget.CheckBox;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -33,8 +34,6 @@ import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.places.AutocompleteFilter;
-import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -44,16 +43,14 @@ import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.Place;
-import com.google.android.libraries.places.api.model.TypeFilter;
 import com.google.android.libraries.places.api.net.PlacesClient;
 import com.google.android.libraries.places.widget.Autocomplete;
+import com.google.android.libraries.places.widget.AutocompleteActivity;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
-import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
 import com.pujit.confirmlocation.R;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -61,7 +58,7 @@ import java.util.Locale;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
-        LocationListener {
+        LocationListener, View.OnClickListener {
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
     GoogleApiClient mGoogleApiClient;
     private GoogleMap mMap;
@@ -71,50 +68,76 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private List<Address> addresses;
     private TextView tvCurrentLocation;
     private Context context = this;
-    private PlacesClient placesClient;
-    private EditText edSearch;
-
+    private CheckBox chkFav;
+    private CardView cvSearchBarl;
+    private Intent searchIntent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-        tvCurrentLocation = findViewById(R.id.tvCurrentLocation);
-        if (!Places.isInitialized()) {
-            Places.initialize(context, getResources().getString(R.string.google_maps_key));
-            PlacesClient placesClient = Places.createClient(this);
-        }
+        initControls();
+
+    }
+
+    private void initControls() {
+        initListeners();
+        SupportMapFragment mapFragment = getSupportMapFragment();
+        mapFragment.getMapAsync(this);
         placeAutoCompleteListener();
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        changeMyLocationButton(mapFragment);
+        configureCameraIdle();
+    }
+
+    private SupportMapFragment getSupportMapFragment() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             checkLocationPermission();
         }
-        SupportMapFragment mapFragment = (SupportMapFragment)
+        return (SupportMapFragment)
                 getSupportFragmentManager()
                         .findFragmentById(R.id.map);
+    }
 
-        mapFragment.getMapAsync(this);
+    private void changeMyLocationButton(SupportMapFragment mapFragment) {
         View locationButton = mapFragment.getView().findViewById(2);
         RelativeLayout.LayoutParams rlp = (RelativeLayout.LayoutParams)  locationButton.getLayoutParams();
         rlp.addRule(RelativeLayout.ALIGN_PARENT_TOP, 0);
         rlp.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
-        configureCameraIdle();
+    }
+
+    private void initListeners() {
+        tvCurrentLocation = findViewById(R.id.tvCurrentLocation);
+        chkFav = findViewById(R.id.chkFav);
+        cvSearchBarl = findViewById(R.id.cvSearchBarl);
+
 
     }
 
     private void placeAutoCompleteListener() {
-        final AutocompleteSupportFragment autocompleteFragment = (AutocompleteSupportFragment) getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
+        if (!Places.isInitialized()) {
+            Places.initialize(context, getResources().getString(R.string.google_maps_key));
+            PlacesClient placesClient = Places.createClient(this);
+        }
+        AutocompleteSupportFragment autocompleteFragment = (AutocompleteSupportFragment) getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
         autocompleteFragment.setPlaceFields(Arrays.asList(Place.Field.NAME, Place.Field.ADDRESS, Place.Field.LAT_LNG));
-        List<TypeFilter> typeFilters = new ArrayList<>(Arrays.asList(TypeFilter.values()));
-
+//        List<Place.Field> fields = Arrays.asList(Place.Field.NAME, Place.Field.ADDRESS, Place.Field.LAT_LNG);
+//        searchIntent = new Autocomplete.IntentBuilder(
+//                AutocompleteActivityMode.OVERLAY, fields)
+//                .build(this);
+//        startActivityForResult(searchIntent, 11);
+//        cvSearchBarl.setOnClickListener(this);
         autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(@NonNull Place place) {
                 LatLng latLng = place.getLatLng();
                 if (latLng != null) {
-//                        configureCameraIdle();
+                    configureCameraIdle();
                     mMap.clear();
                     mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
                     mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+                    if (chkFav.isChecked()){
+                            String savedLocation=place.getId();
+                    }
                     tvCurrentLocation.setText("Location:\n" + place.getName());
                     Log.i("TAG", "Place: " + place.getName() + ", " + place.getId());
                 } else {
@@ -149,6 +172,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 11) {
+            if (resultCode == RESULT_OK) {
+                Place place = Autocomplete.getPlaceFromIntent(data);
+                LatLng latLng = place.getLatLng();
+                if (latLng != null) {
+                    mMap.clear();
+                    mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+
+                } else if (resultCode == AutocompleteActivity.RESULT_ERROR) {
+                    // TODO: Handle the error.
+                    Status status = Autocomplete.getStatusFromIntent(data);
+                    Log.i("TAG", status.getStatusMessage());
+                } else if (resultCode == RESULT_CANCELED) {
+                    // The user canceled the operation.
+                }
+            }
+        }
     }
 
     @Override
@@ -416,4 +457,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         };
     }
 
+    @Override
+    public void onClick(View view) {
+        if (view.getId()==R.id.cvSearchBarl){
+            startActivityForResult(searchIntent, 11);
+        }
+    }
 }

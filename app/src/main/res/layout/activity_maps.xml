@@ -2,11 +2,13 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:searchSuggestAuthority ="com.grokkingandroid.SampleRecentSuggestionsProvider"
+    android:searchSuggestSelection = " ?"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
     <com.google.android.material.card.MaterialCardView
-        android:id="@+id/cvSearchBar"
+        android:id="@+id/cvSearchBarl"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
@@ -24,6 +26,7 @@
             android:name="com.google.android.libraries.places.widget.AutocompleteSupportFragment"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:includeInGlobalSearch="true"
             android:padding="10dp"
 
             />
@@ -61,8 +64,22 @@
         android:padding="10dp"
         android:text="Location"
         android:textSize="15sp"
+        android:layout_marginEnd="50dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/map" />
+
+    <com.google.android.material.checkbox.MaterialCheckBox
+        android:id="@+id/chkFav"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_marginTop="25dp"
+        android:background="@drawable/btn_like"
+        android:button="@android:color/transparent"
+        android:checked="false"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/map" />
 </androidx.constraintlayout.widget.ConstraintLayout>
