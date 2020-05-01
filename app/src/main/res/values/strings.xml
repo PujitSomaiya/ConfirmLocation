@@ -4,4 +4,5 @@
     <string name="gps_network_not_enabled">location is off</string>
     <string name="open_location_settings">open setting</string>
     <string name="Cancel">Cancel</string>
+    <string name="internet_not_unabled">Internet is off</string>
 </resources>

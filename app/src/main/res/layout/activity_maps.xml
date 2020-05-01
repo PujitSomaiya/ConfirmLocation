@@ -5,17 +5,27 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <fragment
-        android:id="@+id/autocomplete_fragment"
-        android:name="com.google.android.libraries.places.widget.AutocompleteSupportFragment"
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cvSearchBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintVertical_bias="0"
+
+        android:elevation="10dp"
         app:layout_constraintBottom_toTopOf="@id/tvCurrentLocation"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        />
+        app:layout_constraintVertical_bias="0">
+
+        <fragment
+            android:id="@+id/autocomplete_fragment"
+            android:name="com.google.android.libraries.places.widget.AutocompleteSupportFragment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+
+            />
+    </com.google.android.material.card.MaterialCardView>
 
     <fragment
         android:id="@+id/map"
@@ -25,7 +35,7 @@
         app:layout_constraintBottom_toTopOf="@id/tvCurrentLocation"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/autocomplete_fragment"
+        app:layout_constraintTop_toBottomOf="@id/cvSearchBar"
         tools:context=".ui.view.MapsActivity" />
 
     <ImageView
@@ -33,19 +43,19 @@
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:layout_centerInParent="true"
-        android:src="@drawable/location_pin_up"
         android:layout_marginBottom="42dp"
+        android:src="@drawable/location_pin_up"
         app:layout_constraintBottom_toTopOf="@id/tvCurrentLocation"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/autocomplete_fragment"/>
+        app:layout_constraintTop_toBottomOf="@id/cvSearchBar" />
 
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/tvCurrentLocation"
         android:layout_width="0dp"
         android:layout_height="300dp"
-        android:padding="10dp"
         android:lines="3"
+        android:padding="10dp"
         android:text="Location"
         android:textSize="15sp"
         app:layout_constraintBottom_toBottomOf="parent"

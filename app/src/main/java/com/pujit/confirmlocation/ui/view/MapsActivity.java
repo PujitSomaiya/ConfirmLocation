@@ -5,6 +5,7 @@ import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
+
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
@@ -23,6 +24,7 @@ import android.util.Log;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Status;
@@ -40,13 +42,16 @@ import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.api.model.TypeFilter;
 import com.google.android.libraries.places.api.net.PlacesClient;
 import com.google.android.libraries.places.widget.Autocomplete;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
 import com.pujit.confirmlocation.R;
+
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -73,6 +78,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         tvCurrentLocation = findViewById(R.id.tvCurrentLocation);
+        if (!Places.isInitialized()) {
+            Places.initialize(context, getResources().getString(R.string.google_maps_key));
+            PlacesClient placesClient = Places.createClient(this);
+        }
         placeAutoCompleteListener();
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             checkLocationPermission();
@@ -87,39 +96,43 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void placeAutoCompleteListener() {
-        if (!Places.isInitialized()) {
-            Places.initialize(getApplicationContext(), getResources().getString(R.string.google_maps_key));
-        }
-        {
-            AutocompleteSupportFragment autocompleteFragment = (AutocompleteSupportFragment)
-                    getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
-            autocompleteFragment.setPlaceFields(Arrays.asList(Place.Field.ID,Place.Field.NAME));
-            autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
-                @Override
-                public void onPlaceSelected(@NonNull Place place) {
-                    LatLng latLng = place.getLatLng();
+        final AutocompleteSupportFragment autocompleteFragment = (AutocompleteSupportFragment) getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
+        autocompleteFragment.setPlaceFields(Arrays.asList(Place.Field.NAME, Place.Field.ADDRESS, Place.Field.LAT_LNG));
+        List<TypeFilter> typeFilters = new ArrayList<>(Arrays.asList(TypeFilter.values()));
+
+        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onPlaceSelected(@NonNull Place place) {
+                LatLng latLng = place.getLatLng();
+                if (latLng != null) {
+//                        configureCameraIdle();
+                    mMap.clear();
                     mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-                    mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
+                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+                    tvCurrentLocation.setText("Location:\n" + place.getName());
+
+                    Log.i("TAG", "Place: " + place.getName() + ", " + place.getId());
+                } else {
+                    Toast.makeText(context, "Latlag is null", Toast.LENGTH_LONG).show();
                 }
 
-                @Override
-                public void onError(Status status) {
-                    // TODO: Handle the error.
+            }
 
-                }
-            });
-        }
+            @Override
+            public void onError(Status status) {
+                // TODO: Handle the error.
+                Toast.makeText(context, String.valueOf(status), Toast.LENGTH_LONG).show();
+
+            }
+        });
+
     }
 
-//    private void searchField() {
+    //    private void searchField() {
 //        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
 //            @Override
 //            public void onPlaceSelected(Place place) {
-//                mMap.clear();
-//                mMap.addMarker(new MarkerOptions().position(place.getLatLng()).title(place.getName().toString()));
-//                mMap.moveCamera(CameraUpdateFactory.newLatLng(place.getLatLng()));
-//                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(place.getLatLng(), 12.0f));
-//                Log.i("TAG", "Place: " + place.getName() + ", " + place.getId());
+//
 //            }
 //
 //            @Override
@@ -216,13 +229,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         } catch (Exception ex) {
             Log.d("gps exception", String.valueOf(ex));
         }
-        if (!gps_enabled) {
+        try {
+            network_enabled = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+        } catch (Exception ex) {
+            Log.d("network exception", String.valueOf(ex));
+        }
+        if (!network_enabled) {
             new AlertDialog.Builder(context)
-                    .setMessage(R.string.gps_network_not_enabled)
+                    .setMessage(R.string.internet_not_unabled)
                     .setPositiveButton(R.string.open_location_settings, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface paramDialogInterface, int paramInt) {
-                            context.startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+                            context.startActivity(new Intent(Settings.ACTION_NETWORK_OPERATOR_SETTINGS));
                         }
                     }).setNegativeButton(R.string.Cancel, new DialogInterface.OnClickListener() {
                 @Override
@@ -230,8 +248,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     finish();
                 }
             }).show();
+            if (!gps_enabled) {
+                new AlertDialog.Builder(context)
+                        .setMessage(R.string.gps_network_not_enabled)
+                        .setPositiveButton(R.string.open_location_settings, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+                                context.startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+                            }
+                        }).setNegativeButton(R.string.Cancel, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        finish();
+                    }
+                }).show();
 
-
+            }
         } else {
             mGoogleApiClient = new GoogleApiClient.Builder(this)
                     .addConnectionCallbacks(this)
