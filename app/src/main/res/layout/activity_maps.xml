@@ -21,14 +21,14 @@
         app:layout_constraintVertical_bias="0"
         app:strokeWidth="1dp">
 
-        <fragment
-            android:id="@+id/autocomplete_fragment"
-            android:name="com.google.android.libraries.places.widget.AutocompleteSupportFragment"
+        <com.google.android.material.textfield.MaterialAutoCompleteTextView
+            android:id="@+id/svMaps"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:includeInGlobalSearch="true"
             android:padding="10dp"
-
+            android:singleLine="true"
+            android:background="@android:color/transparent"
             />
     </com.google.android.material.card.MaterialCardView>
 
